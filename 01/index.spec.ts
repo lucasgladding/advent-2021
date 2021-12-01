@@ -1,5 +1,8 @@
+import {main} from './index';
+
 describe('01', () => {
     it('runs', () => {
-        expect(true).toEqual(true);
+        const output = main();
+        expect(output).toEqual(7);
     });
 });
