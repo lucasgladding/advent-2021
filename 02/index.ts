@@ -34,3 +34,25 @@ export function navigate1(name: string): Location {
     }
     return { position, depth };
 }
+
+export function navigate2(name: string): Location {
+    let position = 0;
+    let depth = 0;
+    let aim = 0;
+    const commands = parse(name);
+    for (let command of commands) {
+        switch (command[0]) {
+            case 'forward':
+                position += command[1];
+                depth += command[1] * aim;
+                break;
+            case 'down':
+                aim += command[1];
+                break;
+            case 'up':
+                aim -= command[1];
+                break;
+        }
+    }
+    return { position, depth };
+}
