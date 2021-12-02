@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "lint": "eslint . --ext .js,.ts"
+    "lint": "eslint . --ext .js,.ts",
+    "lint:fix": "eslint . --ext .js,.ts --fix"
   },
   "devDependencies": {
     "@types/jest": "^27.0.3",
