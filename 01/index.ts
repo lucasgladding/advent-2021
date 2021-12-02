@@ -1,11 +1,15 @@
 import {read} from '../helpers';
 
-export function calculate1(name: string): number {
+function parse(name: string): number[] {
     const contents = read(name)
-    const lines = contents.split('\n').map(text => parseInt(text));
+    return contents.split('\n').map(text => parseInt(text));
+}
+
+export function calculate1(name: string): number {
     let count = -1;
-    let previous: number = 0;
-    for (let measurement of lines) {
+    let previous = 0;
+    const measurements = parse(name);
+    for (let measurement of measurements) {
         if (measurement > previous) {
             count++;
         }
@@ -15,15 +19,16 @@ export function calculate1(name: string): number {
 }
 
 export function calculate2(name: string): number {
-    const contents = read(name)
-    const lines = contents.split('\n').map(text => parseInt(text));
-    const tacos = lines.map((measurement, index) => {
-        if (index < 2) return 0;
-        return lines[index] + lines[index - 1] + lines[index - 2];
-    });
     let count = -1;
-    let previous: number = 0;
-    for (let measurement of tacos) {
+    let previous = 0;
+    const measurements = parse(name);
+    const sums = measurements.map((measurement, index) => {
+        if (index < 2) {
+            return 0;
+        }
+        return measurements[index] + measurements[index - 1] + measurements[index - 2];
+    });
+    for (let measurement of sums) {
         if (measurement > previous) {
             count++;
         }
