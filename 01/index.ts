@@ -9,7 +9,7 @@ export function calculate1(name: string): number {
     let count = -1;
     let previous = 0;
     const measurements = parse(name);
-    for (let measurement of measurements) {
+    for (const measurement of measurements) {
         if (measurement > previous) {
             count++;
         }
@@ -28,7 +28,7 @@ export function calculate2(name: string): number {
         }
         return measurements[index] + measurements[index - 1] + measurements[index - 2];
     });
-    for (let measurement of sums) {
+    for (const measurement of sums) {
         if (measurement > previous) {
             count++;
         }

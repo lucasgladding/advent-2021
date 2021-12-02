@@ -19,7 +19,7 @@ export function navigate1(name: string): Location {
     let position = 0;
     let depth = 0;
     const commands = parse(name);
-    for (let command of commands) {
+    for (const command of commands) {
         switch (command[0]) {
             case 'forward':
                 position += command[1];
@@ -40,7 +40,7 @@ export function navigate2(name: string): Location {
     let depth = 0;
     let aim = 0;
     const commands = parse(name);
-    for (let command of commands) {
+    for (const command of commands) {
         switch (command[0]) {
             case 'forward':
                 position += command[1];

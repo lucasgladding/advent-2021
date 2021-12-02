@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "lint": "eslint . --ext .js,.ts"
+  },
   "devDependencies": {
     "@types/jest": "^27.0.3",
     "@typescript-eslint/eslint-plugin": "^5.5.0",
