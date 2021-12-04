@@ -36,8 +36,8 @@ export class Board {
     get won(): boolean {
         const rows = _.chunk(this.cells, 5);
         const cols = _.zip(...rows);
-        return rows.some(item => item.every(item => item.isSelected)) ||
-               cols.some(item => item.every(item => item!.isSelected));
+        return rows.some(row => row.every(cell => cell.isSelected)) ||
+               cols.some(col => col.every(cell => cell!.isSelected));
     }
 
     get score(): number {
