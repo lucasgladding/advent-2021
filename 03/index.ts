@@ -1,49 +1,44 @@
 import _ from 'lodash';
 import {read} from '../helpers';
 
-type Input = Array<Array<string>>;
-
-type Output1 = {
-    gamma: string,
-    epsilon: string,
-};
+type Input = string[][];
 
 export function parse(name: string): Input {
     const contents = read(name);
     return contents.split('\n').map(item => item.split(''));
 }
 
+type Select = <T>(input: Array<T> | undefined) => T | undefined;
+
 type Count = [string, number];
 
-export function calculate1(inputs: Input): Output1 {
+export function calculate1(inputs: Input, select: Select): string {
+    let output = '';
     const transposed = _.zip(...inputs);
-    let g = '';
-    let e = '';
     for (const item of transposed) {
         const stats: Count[] = _.flow([
             _.countBy,
             _.entries,
-            (item) => _.sortBy(item, _.last)
+            (item) => _.sortBy(item, _.last),
         ])(item);
-        g += (_.last(stats) as Count)[0];
-        e += (_.head(stats) as Count)[0];
+        output += select(stats)![0];
     }
-    return { gamma: g, epsilon: e };
+    return output;
 }
 
-type Output2 = {
-    oxygen: string,
-    co2: string,
-}
-
-function scan(input: Input, basis: string, position: number = 0): Input {
-    const matches = input.filter(item => item[position] === basis[position]);
-    if (matches.length <= 1) return matches;
-    return scan(matches, basis, position + 1);
-}
-
-export function calculate2(input: Input): Output2 {
-    const basis = calculate1(input);
-    scan(input, basis.gamma);
-    return { oxygen: '', co2: '' };
+export function calculate2(input: Input, select: Select): string {
+    let current = input;
+    const length = input[0].length;
+    for (let i = 0; i < length; i++) {
+        const numbers = current.map(item => item[i]);
+        const target = _.flow([
+            _.countBy,
+            _.entries,
+            (item) => _.sortBy(item, _.last),
+            select,
+            _.head,
+        ])(numbers);
+        current = current.filter(item => item[i] === target);
+    }
+    return current[0].join('');
 }
