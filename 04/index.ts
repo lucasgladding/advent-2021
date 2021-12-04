@@ -19,11 +19,11 @@ class Cell {
 }
 
 export class Board {
-    static load(id: string, input: BoardInput): Board {
-        return new Board(id, input.map(number => new Cell(number)));
+    static load(input: BoardInput): Board {
+        return new Board(input.map(number => new Cell(number)));
     }
 
-    constructor(public id: string, private cells: Cell[]) { }
+    constructor(private cells: Cell[]) { }
 
     select(subject: string) {
         this.cells.forEach(cell => {
@@ -50,7 +50,7 @@ export class Board {
 export class Game {
     static load(input: GameInput): Game {
         const drawn = _.head(input)!;
-        const boards = _.tail(input).map((item, i) => Board.load(`${i + 1}`, item));
+        const boards = _.tail(input).map(item => Board.load(item));
         return new Game(drawn, boards);
     }
 
