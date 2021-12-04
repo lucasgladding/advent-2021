@@ -19,11 +19,11 @@ class Cell {
 }
 
 export class Board {
-    static load(input: BoardInput): Board {
-        return new Board(input.map(number => new Cell(number)));
+    static load(id: string, input: BoardInput): Board {
+        return new Board(id, input.map(number => new Cell(number)));
     }
 
-    constructor(private cells: Cell[]) { }
+    constructor(public id: string, private cells: Cell[]) { }
 
     select(subject: string) {
         this.cells.forEach(cell => {
@@ -50,32 +50,29 @@ export class Board {
 export class Game {
     static load(input: GameInput): Game {
         const drawn = _.head(input)!;
-        const boards = _.tail(input).map(item => Board.load(item));
+        const boards = _.tail(input).map((item, i) => Board.load(`${i + 1}`, item));
         return new Game(drawn, boards);
     }
 
     constructor(private drawn: string[], private boards: Board[], public step: number = 0) { }
 
-    next(): boolean {
+    next() {
         const subject = this.drawn[this.step];
-        const done = this.boards.some(board => {
+        this.boards.some(board => {
             board.select(subject);
-            return board.won;
         });
         this.step++;
-        return done;
     }
 
     get winner(): Board | undefined {
         return this.boards.find(board => board.won);
     }
 
-    get latest(): number {
-        return parseInt(this.drawn[this.step - 1])
+    get remaining(): Board[] {
+        return this.boards.filter(board => !board.won);
     }
 
-    get score(): number {
-        if (!this.winner) return 0;
-        return this.winner.score * this.latest;
+    get latest(): number {
+        return parseInt(this.drawn[this.step - 1])
     }
 }
