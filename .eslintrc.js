@@ -13,5 +13,6 @@ module.exports = {
     },
     rules: {
         quotes: ['error', 'single'],
+        '@typescript-eslint/no-non-null-assertion': ['off'],
     }
 };
