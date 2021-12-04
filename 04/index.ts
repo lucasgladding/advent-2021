@@ -70,8 +70,12 @@ export class Game {
         return this.boards.find(board => board.won);
     }
 
+    get latest(): number {
+        return parseInt(this.drawn[this.step - 1])
+    }
+
     get score(): number {
         if (!this.winner) return 0;
-        return this.winner.score * parseInt(this.drawn[this.step - 1]);
+        return this.winner.score * this.latest;
     }
 }
