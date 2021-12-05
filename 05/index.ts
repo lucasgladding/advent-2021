@@ -15,7 +15,7 @@ export function parse(name: string): Line[] {
                 .map(item => parseInt(item)))) as Line[];
 }
 
-function pick(input: Line[], select: Select) {
+function pick(input: Line[], select: Select): number {
     return _.flow([
         _.flatten,
         (item) => _.map(item, select),
@@ -38,7 +38,7 @@ function diagonal(dx: number, dy: number): boolean {
     return dx !== 0 && dy !== 0;
 }
 
-function inside(subject: number, range: number[]): boolean {
+function inside(subject: number, range: Point): boolean {
     return subject >= (_.min(range) as number) && subject <= (_.max(range) as number);
 }
 
@@ -46,14 +46,14 @@ export class Grid {
     points: number[][];
 
     constructor(point: Point) {
-        this.points = Array(point[1] + 1).fill(undefined).map(_ => Array(point[0] + 1).fill(0))
+        this.points = Array(point[1] + 1).fill(undefined).map(() => Array(point[0] + 1).fill(0))
     }
 
-    draw(line: Line, diagonals = false) {
-        const [xs, ys] = _.zip(...line) as number[][];
+    draw(line: Line, withDiagonal = false) {
+        const [xs, ys] = _.zip(...line) as Point[];
         const dx = change(xs[0], xs[1]);
         const dy = change(ys[0], ys[1]);
-        if (!diagonals && diagonal(dx, dy))
+        if (!withDiagonal && diagonal(dx, dy))
             return;
         let x = line[0][0];
         let y = line[0][1];
