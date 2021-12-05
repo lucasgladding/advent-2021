@@ -49,11 +49,11 @@ export class Grid {
         this.points = Array(point[1] + 1).fill(undefined).map(_ => Array(point[0] + 1).fill(0))
     }
 
-    draw(line: Line) {
+    draw(line: Line, diagonals = false) {
         const [xs, ys] = _.zip(...line) as number[][];
         const dx = change(xs[0], xs[1]);
         const dy = change(ys[0], ys[1]);
-        if (diagonal(dx, dy))
+        if (!diagonals && diagonal(dx, dy))
             return;
         let x = line[0][0];
         let y = line[0][1];
