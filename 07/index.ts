@@ -6,9 +6,9 @@ export function parse(name: string): number[] {
     return contents.split(',').map(item => parseInt(item));
 }
 
-type Cost = (position: number, target: number) => number;
+type CostFn = (position: number, target: number) => number;
 
-export function run(input: number[], cost: Cost): number {
+export function run(input: number[], cost: CostFn): number {
     const max = _.max(input);
     const costs = Array(max).fill(undefined).map((item, index) => {
         const distances = input.map(position => cost(position, index));
