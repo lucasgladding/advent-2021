@@ -6,30 +6,30 @@ export function parse(name: string): number[] {
     return contents.split(',').map(item => parseInt(item));
 }
 
-export function cost1(input: number[], target: number): number {
-    const distances = input.map(position => Math.abs(position - target));
-    return _.sum(distances);
+type Cost = (position: number, target: number) => number;
+
+function run(input: number[], cost: Cost): number {
+    const max = _.max(input);
+    const costs = Array(max).fill(undefined).map((item, index) => {
+        const distances = input.map(position => cost(position, index));
+        return _.sum(distances);
+    });
+    return _.min(costs) ?? 0;
+}
+
+function cost1(position: number, target: number): number {
+    return Math.abs(position - target);
+}
+
+function cost2(position: number, target: number): number {
+    const distance = Math.abs(position - target);
+    return (distance / 2) * (2 + (distance - 1));
 }
 
 export function run1(input: number[]): number {
-    const max = _.max(input);
-    const costs = Array(max).fill(undefined).map((item, index) => {
-        return cost1(input, index);
-    });
-    return _.min(costs) ?? 0;
+    return run(input, cost1);
 }
 
-export function cost2(input: number[], target: number): number {
-    const distances = input.map(position => {
-        const distance = Math.abs(position - target);
-        return (distance / 2) * (2 + (distance - 1));
-    });
-    return _.sum(distances);
-}
 export function run2(input: number[]): number {
-    const max = _.max(input);
-    const costs = Array(max).fill(undefined).map((item, index) => {
-        return cost2(input, index);
-    });
-    return _.min(costs) ?? 0;
+    return run(input, cost2);
 }
