@@ -24,12 +24,7 @@ export class Heightmap {
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
                 const current = this.point(x, y)!;
-                const adjacent = ([
-                    this.point(x - 1, y),
-                    this.point(x + 1, y),
-                    this.point(x, y - 1),
-                    this.point(x, y + 1),
-                ].filter(height => height !== undefined)) as Point[];
+                const adjacent = this.adjacent(x, y);
                 const lowestAdjacentHeight = _.min(adjacent.map(point => point.height))!;
 
                 if (current.height < lowestAdjacentHeight)
@@ -37,6 +32,15 @@ export class Heightmap {
             }
         }
         return lowest;
+    }
+
+    adjacent(x: number, y: number): Point[] {
+        return [
+            this.point(x - 1, y),
+            this.point(x + 1, y),
+            this.point(x, y - 1),
+            this.point(x, y + 1),
+        ].filter(point => point !== undefined) as Point[];
     }
 
     private point(x: number, y: number) {
