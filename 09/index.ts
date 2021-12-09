@@ -50,9 +50,8 @@ export class Heightmap {
     }
 
     get product(): number {
-        const basins = _.sortBy(this.basins, basin => basin.size).reverse();
-        const subjects = basins.slice(0, 3);
-        return subjects.reduce((acc, item) => {
+        const largest = _.sortBy(this.basins, basin => basin.size).reverse().slice(0, 3);
+        return largest.reduce((acc, item) => {
             return acc * item.size;
         }, 1);
     }
