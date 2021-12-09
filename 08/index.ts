@@ -3,10 +3,14 @@ import {read} from '../helpers';
 
 type Input = string[][][];
 
+function cleanup(input: string): string {
+    return input.split('').sort().join('');
+}
+
 export function parse(name: string): Input {
     const contents = read(name);
     return contents.split('\n').map(item => {
-        return item.split(' | ').map(item => item.split(' '));
+        return item.split(' | ').map(item => item.split(' ').map(cleanup));
     })
 }
 
@@ -37,50 +41,42 @@ export function count(input: Input): number {
 
 type Schema = Record<string, string>;
 
-type Evaluation = (subject: string) => boolean;
+type EvaluationFn = (subject: string) => boolean;
 
-function text_included_in(text: string, target: string): boolean {
+function chars_in_target(text: string, target: string): boolean {
     return text.split('').every(char => target.includes(char));
 }
 
-function included_in(target: string): Evaluation {
-    return (subject) => text_included_in(subject, target);
+function includes_chars(target: string): EvaluationFn {
+    return subject => chars_in_target(target, subject);
 }
 
-function includes(target: string): Evaluation {
-    return (subject) => text_included_in(target, subject);
+function chars_in(target: string): EvaluationFn {
+    return subject => chars_in_target(subject, target);
 }
 
-function length(target: number): Evaluation {
-    return (subject) => target === subject.length;
-}
-
-function text(input: string[], evaluate: Evaluation): string[] {
-    return input.filter(evaluate);
+function is_length(target: number): EvaluationFn {
+    return subject => target === subject.length;
 }
 
 function intersect(input: string[], schema: Schema): string[] {
     return input.filter(item => !Object.values(schema).includes(item))
 }
 
-function cleanup(input: string): string {
-    return input.split('').sort().join('');
-}
-
 function get_schema(input: string[]): Schema {
-    const groups = _.groupBy(input, (item) => item.length);
+    const groups = _.groupBy(input, item => item.length);
 
     const schema: Schema = {};
-    schema[1] = text(input, length(segments[1]))[0];
-    schema[4] = text(input, length(segments[4]))[0];
-    schema[7] = text(input, length(segments[7]))[0];
-    schema[8] = text(input, length(segments[8]))[0];
+    schema[1] = input.filter(is_length(segments[1]))[0];
+    schema[4] = input.filter(is_length(segments[4]))[0];
+    schema[7] = input.filter(is_length(segments[7]))[0];
+    schema[8] = input.filter(is_length(segments[8]))[0];
 
-    schema[3] = text(groups[5], includes(schema[7]))[0];
-    schema[9] = text(groups[6], includes(schema[3]))[0];
+    schema[3] = groups[5].filter(includes_chars(schema[7]))[0];
+    schema[9] = groups[6].filter(includes_chars(schema[3]))[0];
 
-    schema[0] = text(intersect(groups[6], schema), includes(schema[7]))[0];
-    schema[5] = text(intersect(groups[5], schema), included_in(schema[9]))[0];
+    schema[0] = intersect(groups[6], schema).filter(includes_chars(schema[7]))[0];
+    schema[5] = intersect(groups[5], schema).filter(chars_in(schema[9]))[0];
 
     schema[2] = intersect(groups[5], schema)[0];
     schema[6] = intersect(groups[6], schema)[0];
