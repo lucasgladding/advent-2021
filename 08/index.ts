@@ -33,49 +33,74 @@ export function count(input: Input): number {
     return counts[segments[1]] + counts[segments[4]] + counts[segments[7]] + counts[segments[8]];
 }
 
-type Schema = Record<number, string>;
+type Schema = Record<string, string>;
 
-function length(input: string[], target: number): string {
-    return input.find(item => item.length === target)!
+type Evaluation = (subject: string) => boolean;
+
+function included_in(target: string): Evaluation {
+    return (subject) => {
+        return subject.split('').every(char => target.includes(char));
+    };
 }
 
-function intersects(subject: string, target: string) {
-    return target.split('').every(char => {
-        return subject.includes(char);
-    });
+function includes(target: string): Evaluation {
+    return (subject) => {
+        return target.split('').every(char => subject.includes(char));
+    };
 }
 
-function text(input: string[], target: string): string[] {
-    return input.filter(subject => {
-        return intersects(subject, target);
-    });
+function length(target: number): Evaluation {
+    return (subject) => {
+        return target === subject.length;
+    };
+}
+
+function text(input: string[], evaluate: Evaluation): string[] {
+    return input.filter(evaluate);
 }
 
 function unused(input: string[], schema: Schema): string[] {
     return input.filter(item => !Object.values(schema).includes(item))
 }
 
-export function decode(parts: string[][]): number {
-    const [input] = parts;
+function clean(input: string): string {
+    return input.split('').sort().join('');
+}
+
+function deduce(input: string[]): Schema {
     const groups = _.groupBy(input, (item) => item.length);
 
     const schema: Schema = {};
-    schema[1] = length(input, segments[1]);
-    schema[4] = length(input, segments[4]);
-    schema[7] = length(input, segments[7]);
-    schema[8] = length(input, segments[8]);
+    schema[1] = text(input, length(segments[1]))[0];
+    schema[4] = text(input, length(segments[4]))[0];
+    schema[7] = text(input, length(segments[7]))[0];
+    schema[8] = text(input, length(segments[8]))[0];
 
-    schema[3] = text(groups[5], schema[7])[0];
-    schema[9] = text(groups[6], schema[3])[0];
+    schema[3] = text(groups[5], includes(schema[7]))[0];
+    schema[9] = text(groups[6], includes(schema[3]))[0];
 
-    schema[0] = text(unused(input, schema), schema[7])[0];
+    schema[0] = text(unused(input, schema), includes(schema[7]))[0];
+    schema[5] = text(unused(groups[5], schema), included_in(schema[9]))[0];
+
+    schema[2] = unused(groups[5], schema)[0];
     schema[6] = unused(groups[6], schema)[0];
 
-    // schema[2] = undefined;
-    // schema[5] = undefined;
+    return Object.entries(schema).reduce((acc, item) => {
+        acc[item[0]] = clean(item[1]);
+        return acc;
+    }, {} as Schema);
+}
 
-    // schema[0] = undefined;
-    // schema[6] = undefined;
+export function decode(parts: string[][]): number {
+    const [input, output] = parts;
 
-    return 0;
+    const schema = deduce(input);
+
+    const text = output.map(clean).map(item => {
+        const pairs = Object.entries(schema);
+        const match = pairs.find(pair => pair[1] === item);
+        return match![0];
+    }).join('');
+
+    return parseInt(text);
 }
