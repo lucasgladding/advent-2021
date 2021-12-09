@@ -55,10 +55,6 @@ function chars_in(target: string): EvaluationFn {
     return subject => chars_in_target(subject, target);
 }
 
-function is_length(target: number): EvaluationFn {
-    return subject => target === subject.length;
-}
-
 function intersect(input: string[], schema: Schema): string[] {
     return input.filter(item => !Object.values(schema).includes(item))
 }
@@ -67,24 +63,22 @@ function get_schema(input: string[]): Schema {
     const groups = _.groupBy(input, item => item.length);
 
     const schema: Schema = {};
-    schema[1] = input.filter(is_length(segments[1]))[0];
-    schema[4] = input.filter(is_length(segments[4]))[0];
-    schema[7] = input.filter(is_length(segments[7]))[0];
-    schema[8] = input.filter(is_length(segments[8]))[0];
 
-    schema[3] = groups[5].filter(includes_chars(schema[7]))[0];
-    schema[9] = groups[6].filter(includes_chars(schema[3]))[0];
+    schema[1] = groups[segments[1]][0];
+    schema[4] = groups[segments[4]][0];
+    schema[7] = groups[segments[7]][0];
+    schema[8] = groups[segments[8]][0];
 
-    schema[0] = intersect(groups[6], schema).filter(includes_chars(schema[7]))[0];
-    schema[5] = intersect(groups[5], schema).filter(chars_in(schema[9]))[0];
+    schema[3] = groups[segments[3]].filter(includes_chars(schema[7]))[0];
+    schema[9] = groups[segments[9]].filter(includes_chars(schema[3]))[0];
 
-    schema[2] = intersect(groups[5], schema)[0];
-    schema[6] = intersect(groups[6], schema)[0];
+    schema[0] = intersect(groups[segments[0]], schema).filter(includes_chars(schema[7]))[0];
+    schema[5] = intersect(groups[segments[5]], schema).filter(chars_in(schema[9]))[0];
 
-    return Object.entries(schema).reduce((acc, item) => {
-        acc[item[0]] = cleanup(item[1]);
-        return acc;
-    }, {} as Schema);
+    schema[2] = intersect(groups[segments[2]], schema)[0];
+    schema[6] = intersect(groups[segments[6]], schema)[0];
+
+    return schema;
 }
 
 export function decode(parts: string[][]): number {
@@ -92,9 +86,9 @@ export function decode(parts: string[][]): number {
 
     const schema = get_schema(input);
 
-    const text = output.map(cleanup).map(item => {
+    const text = output.map(input => {
         const pairs = Object.entries(schema);
-        const match = pairs.find(pair => pair[1] === item);
+        const match = pairs.find(([, text]) => input === text);
         return match![0];
     }).join('');
 
