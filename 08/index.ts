@@ -33,41 +33,41 @@ export function count(input: Input): number {
     return counts[segments[1]] + counts[segments[4]] + counts[segments[7]] + counts[segments[8]];
 }
 
+// PART 2
+
 type Schema = Record<string, string>;
 
 type Evaluation = (subject: string) => boolean;
 
+function text_included_in(text: string, target: string): boolean {
+    return text.split('').every(char => target.includes(char));
+}
+
 function included_in(target: string): Evaluation {
-    return (subject) => {
-        return subject.split('').every(char => target.includes(char));
-    };
+    return (subject) => text_included_in(subject, target);
 }
 
 function includes(target: string): Evaluation {
-    return (subject) => {
-        return target.split('').every(char => subject.includes(char));
-    };
+    return (subject) => text_included_in(target, subject);
 }
 
 function length(target: number): Evaluation {
-    return (subject) => {
-        return target === subject.length;
-    };
+    return (subject) => target === subject.length;
 }
 
 function text(input: string[], evaluate: Evaluation): string[] {
     return input.filter(evaluate);
 }
 
-function unused(input: string[], schema: Schema): string[] {
+function intersect(input: string[], schema: Schema): string[] {
     return input.filter(item => !Object.values(schema).includes(item))
 }
 
-function clean(input: string): string {
+function cleanup(input: string): string {
     return input.split('').sort().join('');
 }
 
-function deduce(input: string[]): Schema {
+function get_schema(input: string[]): Schema {
     const groups = _.groupBy(input, (item) => item.length);
 
     const schema: Schema = {};
@@ -79,14 +79,14 @@ function deduce(input: string[]): Schema {
     schema[3] = text(groups[5], includes(schema[7]))[0];
     schema[9] = text(groups[6], includes(schema[3]))[0];
 
-    schema[0] = text(unused(input, schema), includes(schema[7]))[0];
-    schema[5] = text(unused(groups[5], schema), included_in(schema[9]))[0];
+    schema[0] = text(intersect(groups[6], schema), includes(schema[7]))[0];
+    schema[5] = text(intersect(groups[5], schema), included_in(schema[9]))[0];
 
-    schema[2] = unused(groups[5], schema)[0];
-    schema[6] = unused(groups[6], schema)[0];
+    schema[2] = intersect(groups[5], schema)[0];
+    schema[6] = intersect(groups[6], schema)[0];
 
     return Object.entries(schema).reduce((acc, item) => {
-        acc[item[0]] = clean(item[1]);
+        acc[item[0]] = cleanup(item[1]);
         return acc;
     }, {} as Schema);
 }
@@ -94,9 +94,9 @@ function deduce(input: string[]): Schema {
 export function decode(parts: string[][]): number {
     const [input, output] = parts;
 
-    const schema = deduce(input);
+    const schema = get_schema(input);
 
-    const text = output.map(clean).map(item => {
+    const text = output.map(cleanup).map(item => {
         const pairs = Object.entries(schema);
         const match = pairs.find(pair => pair[1] === item);
         return match![0];
