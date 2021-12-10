@@ -95,8 +95,7 @@ export class Basin {
     }
 
     hasPoint(point: Point): boolean {
-        const match = this.points.find(item => item.isEqual(point));
-        return match !== undefined;
+        return this.points.some(item => item.isEqual(point));
     }
 
     get size(): number {
