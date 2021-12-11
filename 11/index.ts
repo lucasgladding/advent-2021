@@ -19,10 +19,21 @@ export class Grid {
         const items = _.flatten(this.items);
         for (let i = 0; i < steps; i++) {
             this.next();
-            const flashes = items.filter(item => item.level === 0);
-            count += flashes.length;
+            const flashers = items.filter(item => item.level === 0);
+            count += flashers.length;
         }
         return count;
+    }
+
+    find(): number {
+        const items = _.flatten(this.items);
+        for (let i = 1; i < 500; i++) {
+            this.next();
+            const flashers = items.filter(item => item.level === 0);
+            if (flashers.length === items.length)
+                return i;
+        }
+        return 0;
     }
 
     next(): number {
