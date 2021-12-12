@@ -36,8 +36,7 @@ export class Grid {
         return 0;
     }
 
-    next(): number {
-        let count = 0;
+    next() {
         const items = _.flatten(this.items);
         items.forEach(current => {
             current.level++;
@@ -45,10 +44,8 @@ export class Grid {
         items.forEach(current => {
             if (current.level > 9) {
                 this.flash(current);
-                count++;
             }
         });
-        return count;
     }
 
     flash(item: Octopus) {
