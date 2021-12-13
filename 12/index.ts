@@ -88,10 +88,6 @@ function getLC(path: string[]): string[] {
 }
 
 export class Graph2 extends Graph1 {
-    constructor(protected inputs: Path[]) {
-        super(inputs);
-    }
-
     protected proceed(source: Item, target: string): boolean {
         if (source.text === 'end')
             return false;
