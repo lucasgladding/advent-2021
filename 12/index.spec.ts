@@ -18,4 +18,10 @@ describe('12', () => {
         const graph = new Graph(input);
         expect(graph.paths.length).toEqual(226);
     });
+
+    it('finds part 1', () => {
+        const input = parse('12/input.txt');
+        const graph = new Graph(input);
+        expect(graph.paths.length).toEqual(4411);
+    });
 });
