@@ -19,7 +19,7 @@ class Item {
 export class Graph1 {
     private root = new Item('start');
 
-    constructor(protected inputs: Path[]) {
+    constructor(private inputs: Path[]) {
         this.expand();
     }
 
@@ -82,9 +82,7 @@ export class Graph1 {
 }
 
 function getLC(path: string[]): string[] {
-    return path
-        .filter(input => !['start', 'end'].includes(input))
-        .filter(input => input === input.toLowerCase());
+    return path.filter(input => !['start', 'end'].includes(input) && input === input.toLowerCase());
 }
 
 export class Graph2 extends Graph1 {
