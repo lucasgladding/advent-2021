@@ -5,6 +5,6 @@ describe('12', () => {
         const input = parse('12/example.txt');
         const graph = new Graph(input);
         graph.expand();
-        console.log('done');
+        console.log(graph.debug());
     });
 });

@@ -3,7 +3,7 @@ import * as Path from 'path';
 
 type Path = [string, string];
 
-export function parse(name: string) {
+export function parse(name: string): Path[] {
     const contents = read(name);
     return contents.split('\n').map(item => {
         return item.split('-') as Path;
@@ -11,23 +11,18 @@ export function parse(name: string) {
 }
 
 class Item {
-
     public items: Item[] = []
 
-    constructor(public text: string, public parent: Item | undefined = undefined) {
-        this.text = text;
-    }
-};
+    constructor(public text: string, public parent: Item | undefined = undefined) { }
+}
 
 export class Graph {
-    private root: Item
+    private root = new Item('start');
 
-    constructor(private inputs: Path[]) {
-        this.root = new Item('start');
-    }
+    constructor(private inputs: Path[]) { }
 
-    expand(item?: Item) {
-        const current = item ?? this.root
+    expand(source?: Item) {
+        const current = source ?? this.root
         const targets = this.targets(current.text);
         for (const target of targets) {
             if (!this.proceed(current, target))
@@ -38,30 +33,46 @@ export class Graph {
         }
     }
 
-    private targets(origin: string): string[] {
-        const inputs = this.inputs.filter(input => input.includes(origin));
-        const targets = inputs.map(input => input.find(i => i !== origin)!);
+    private targets(source: string): string[] {
+        const inputs = this.inputs.filter(input => input.includes(source));
+        const targets = inputs.map(input => input.find(i => i !== source)!);
         return targets.sort();
     }
 
-    private proceed(item: Item, target: string) {
-        if (item.text === 'end')
+    private proceed(source: Item, target: string): boolean {
+        if (source.text === 'end')
             return false;
         if (target === 'start')
             return false;
         if (target === target.toUpperCase())
             return true;
-        const path = this.path(item);
-        return !path.includes(target);
+        return !this.path(source).includes(target);
     }
 
-    private path(item: Item) {
-        let current = item;
+    private path(source: Item): string[] {
+        let current = source;
         const path = [current.text];
         while (current.parent) {
             current = current.parent;
             path.push(current.text);
         }
         return path.reverse();
+    }
+
+    debug(): string[][] {
+        const output: string[][] = [];
+        this.traverse(this.root, output);
+        return output;
+    }
+
+    private traverse(source: Item, output: string[][]) {
+        if (source.text === 'end') {
+            const path = this.path(source);
+            output.push(path);
+            return;
+        }
+        for (const item of source.items) {
+            this.traverse(item, output);
+        }
     }
 }
