@@ -1,5 +1,5 @@
+import _ from 'lodash';
 import {read} from '../helpers';
-import * as Path from 'path';
 
 type Path = [string, string];
 
@@ -16,10 +16,10 @@ class Item {
     constructor(public text: string, public parent: Item | undefined = undefined) { }
 }
 
-export class Graph {
+export class Graph1 {
     private root = new Item('start');
 
-    constructor(private inputs: Path[]) {
+    constructor(protected inputs: Path[]) {
         this.expand();
     }
 
@@ -41,17 +41,19 @@ export class Graph {
         return targets.sort();
     }
 
-    private proceed(source: Item, target: string): boolean {
+    protected proceed(source: Item, target: string): boolean {
         if (source.text === 'end')
             return false;
         if (target === 'start')
             return false;
+        if (target === 'end')
+            return true;
         if (target === target.toUpperCase())
             return true;
         return !this.path(source).includes(target);
     }
 
-    private path(source: Item): string[] {
+    protected path(source: Item): string[] {
         let current = source;
         const path = [current.text];
         while (current.parent) {
@@ -76,5 +78,34 @@ export class Graph {
         for (const item of source.items) {
             this.traverse(item, output);
         }
+    }
+}
+
+function getLC(path: string[]): string[] {
+    return path
+        .filter(input => !['start', 'end'].includes(input))
+        .filter(input => input === input.toLowerCase());
+}
+
+export class Graph2 extends Graph1 {
+    constructor(protected inputs: Path[]) {
+        super(inputs);
+    }
+
+    protected proceed(source: Item, target: string): boolean {
+        if (source.text === 'end')
+            return false;
+        if (target === 'start')
+            return false;
+        if (target === 'end')
+            return true;
+        if (target === target.toUpperCase())
+            return true;
+        const path = this.path(source);
+        if (!path.includes(target))
+            return true;
+        const pathLC = getLC(path);
+        const uniquePathLC = _.uniq(pathLC);
+        return pathLC.length === uniquePathLC.length;
     }
 }
