@@ -19,9 +19,11 @@ class Item {
 export class Graph {
     private root = new Item('start');
 
-    constructor(private inputs: Path[]) { }
+    constructor(private inputs: Path[]) {
+        this.expand();
+    }
 
-    expand(source?: Item) {
+    private expand(source?: Item) {
         const current = source ?? this.root
         const targets = this.targets(current.text);
         for (const target of targets) {
@@ -59,7 +61,7 @@ export class Graph {
         return path.reverse();
     }
 
-    debug(): string[][] {
+    get paths(): string[][] {
         const output: string[][] = [];
         this.traverse(this.root, output);
         return output;
