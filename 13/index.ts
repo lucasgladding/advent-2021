@@ -1,15 +1,15 @@
 import _ from 'lodash';
 import {read} from '../helpers';
 
-type PointInput = [number, number];
+type Coordinate = [number, number];
 
 type Instruction = [string, number];
 
-export function parse(name: string): [PointInput[], Instruction[]] {
+export function parse(name: string): [Coordinate[], Instruction[]] {
     const contents = read(name);
     const sections = contents.split('\n\n');
     const points = sections[0].split('\n').map(item => {
-        return item.split(',').map(item => parseInt(item)) as PointInput;
+        return item.split(',').map(item => parseInt(item)) as Coordinate;
     });
     const instructions = sections[1].split('\n').map(item => {
         const pattern = /fold along (.)=(\d+)/;
@@ -20,11 +20,11 @@ export function parse(name: string): [PointInput[], Instruction[]] {
 }
 
 export class Point {
-    static collect(input: PointInput[]): Point[] {
+    static collect(input: Coordinate[]): Point[] {
         return input.map(Point.create)
     }
 
-    static create(input: PointInput): Point {
+    static create(input: Coordinate): Point {
         return new Point(input[0], input[1]);
     }
 
