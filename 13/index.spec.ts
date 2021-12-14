@@ -16,4 +16,14 @@ describe('13', () => {
         page = page.perform(input[1][0]);
         expect(page.count).toEqual(607);
     });
+
+    it('runs part 2', () => {
+        const input = parse('13/input.txt');
+        const points = Point.collect(input[0]);
+        let page = new Page(points);
+        input[1].forEach(instruction => {
+            page = page.perform(instruction);
+        });
+        console.log(page.debug());
+    });
 });
