@@ -3,12 +3,18 @@ import {read} from '../helpers';
 
 type Instruction = [string, string];
 
-export function parse(name: string): [string, Instruction[]] {
+type InstructionSet = Record<string, string>;
+
+export function parse(name: string): [string, InstructionSet] {
     const contents = read(name);
     const sections = contents.split('\n\n');
     const base = sections[0];
     const instructions = sections[1].split('\n').map(item => item.split(' -> ') as Instruction);
-    return [base, instructions];
+    const instructionSet = instructions.reduce((acc, item) => {
+        acc[item[0]] = item[1];
+        return acc;
+    }, {} as InstructionSet);
+    return [base, instructionSet];
 }
 
 export class Template {
@@ -30,28 +36,25 @@ export class Template {
         return output;
     }
 
-    process(instructions: Instruction[], steps: number): Template {
+    process(instructions: InstructionSet, steps: number): Template {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         let current: Template = this;
         for (let i = 0; i < steps; i++) {
+            console.log('processing', i);
             current = current.insert(instructions);
         }
         return current;
     }
 
-    private insert(instructions: Instruction[]): Template {
+    private insert(instructions: InstructionSet): Template {
         const groups = this.groups.map(group => {
-            const instruction = this.find(group, instructions);
+            const instruction = instructions[group];
             if (instruction) {
-                return group[0] + instruction[1] + group[1];
+                return group[0] + instruction + group[1];
             }
             return group;
         });
         return Template.groups(groups);
-    }
-
-    private find(group: string, instructions: Instruction[]) {
-        return instructions.find(i => i[0] === group);
     }
 
     get score(): number {
