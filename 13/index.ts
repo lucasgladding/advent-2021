@@ -3,9 +3,9 @@ import {read} from '../helpers';
 
 type PointInput = [number, number];
 
-type InstructionInput = [string, number];
+type Instruction = [string, number];
 
-export function parse(name: string): [PointInput[], InstructionInput[]] {
+export function parse(name: string): [PointInput[], Instruction[]] {
     const contents = read(name);
     const sections = contents.split('\n\n');
     const points = sections[0].split('\n').map(item => {
@@ -14,7 +14,7 @@ export function parse(name: string): [PointInput[], InstructionInput[]] {
     const instructions = sections[1].split('\n').map(item => {
         const pattern = /fold along (.)=(\d+)/;
         const matches = item.match(pattern);
-        return [matches![1], parseInt(matches![2])] as InstructionInput;
+        return [matches![1], parseInt(matches![2])] as Instruction;
     });
     return [points, instructions];
 }
@@ -29,6 +29,17 @@ export class Point {
     }
 
     constructor(public x: number, public y: number) { }
+
+    perform(instruction: Instruction): Point {
+        const [direction, position] = instruction;
+        if (direction === 'x') {
+            const x = this.x > position ? position - (this.x - position) : this.x;
+            return new Point(x, this.y);
+        } else {
+            const y = this.y > position ? position - (this.y - position) : this.y;
+            return new Point(this.x, y);
+        }
+    }
 }
 
 export class Page {
@@ -56,5 +67,16 @@ export class Page {
     contains(x: number, y: number): boolean {
         const match = this.points.find(point => point.x === x && point.y === y);
         return match !== undefined;
+    }
+
+    perform(instruction: Instruction) {
+        const points = this.points.map(point => point.perform(instruction));
+        return new Page(points);
+    }
+
+    get count(): number {
+        const output = this.debug();
+        const match = output.match(/#/g);
+        return match!.length;
     }
 }
