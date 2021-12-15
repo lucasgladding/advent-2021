@@ -72,6 +72,8 @@ export class Template {
     }
 }
 
+type Stats = Record<string, number>;
+
 export class Template2 {
     static create(input: string): Template2 {
         const groups = getGroups(input);
@@ -79,7 +81,7 @@ export class Template2 {
         return new Template2(input[0], stats);
     }
 
-    constructor(private first: string, private stats: Record<string, number>) { }
+    constructor(private first: string, private stats: Stats) { }
 
     process(instructions: InstructionSet, steps: number): Template2 {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -91,7 +93,7 @@ export class Template2 {
     }
 
     insert(instructions: InstructionSet): Template2 {
-        const stats: Record<string, number> = { ...this.stats };
+        const stats: Stats = { ...this.stats };
         for (const [text, count] of Object.entries(this.stats)) {
             const instruction = instructions[text];
             if (instruction) {
@@ -110,8 +112,7 @@ export class Template2 {
             const char = text[1];
             acc[char] = (acc[char] ?? 0) + count;
             return acc;
-        }, {} as Record<string, number>);
-        stats[this.first] = (stats[this.first] ?? 0) + 1;
+        }, { [this.first]: 1 } as Stats);
         const counts = Object.values(stats);
         return _.max(counts)! - _.min(counts)!;
     }
