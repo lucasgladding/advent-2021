@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import {read} from '../helpers';
 
 export function parse(name: string): number[][] {
@@ -9,9 +10,14 @@ type Coordinate = [number, number];
 
 class Point {
     constructor(
-        public coordinate: Coordinate,
+        public x: number,
+        public y: number,
         public risk: number,
     ) { }
+
+    get hash(): string {
+        return `${this.x},${this.y}`;
+    }
 }
 
 export class Grid {
@@ -23,11 +29,11 @@ export class Grid {
             return undefined;
         if (!this.map[y] || !this.map[y][x])
             return undefined;
-        return new Point(at, this.map[y][x]);
+        return new Point(x, y, this.map[y][x]);
     }
 
-    destinations(from: Point): Point[] {
-        const [x, y] = from.coordinate;
+    nexts(from: Point): Point[] {
+        const {x, y} = from;
         return [
             // this.point([x - 1, y]),
             // this.point([x, y - 1]),
@@ -37,48 +43,74 @@ export class Grid {
     }
 }
 
-class Item {
+export class Item {
     constructor(public point: Point, public parent: Item | undefined = undefined, public items: Item[] = []) { }
 
-    get path(): string[] {
+    get hashes(): string[] {
+        return this.path.map(item => item.hash);
+    }
+
+    get total(): number {
+        const items = this.path.slice(1);
+        return _.sumBy(items, item => item.point.risk);
+    }
+
+    get path(): Item[] {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         let current: Item = this;
-        const path = [current.hash];
+        const path = [current];
         while (current.parent) {
-            path.push(current.parent.hash);
+            path.push(current.parent);
             current = current.parent;
         }
         return path.reverse();
     }
 
     get hash(): string {
-        const coordinate = this.point.coordinate;
-        return `${coordinate[0]},${coordinate[1]}`;
+        return this.point.hash;
     }
 }
 
-export class Path {
+export class Route {
     constructor(private grid: Grid) { }
 
-    origin(): Item {
-        const point = this.grid.point([0, 0])!;
-        return new Item(point);
+    lowest(origin: Point, destination: Point): Item {
+        const paths = this.find(origin, destination);
+        return lowest(paths);
+    }
+
+    find(origin: Point, destination: Point): Item[] {
+        const paths: Item[] = [];
+        const root = new Item(origin);
+        this.expand(root);
+        this.traverse(root, destination, paths);
+        return paths;
     }
 
     expand(origin: Item, depth = 0) {
-        if (depth > 10)
+        if (depth > 50)
             return;
-        const points = this.grid.destinations(origin.point);
+        const points = this.grid.nexts(origin.point);
         for (const point of points) {
             const item = new Item(point, origin);
-            if (!origin.path.includes(item.hash)) {
+            if (!origin.hashes.includes(item.hash)) {
                 origin.items.push(item);
                 this.expand(item, depth + 1);
             }
         }
     }
 
-    get total(): number {
-        return 0;
+    traverse(from: Item, destination: Point, routes: Item[]) {
+        if (from.hash === destination.hash) {
+            routes.push(from);
+            return;
+        }
+        for (const item of from.items) {
+            this.traverse(item, destination, routes);
+        }
     }
+}
+
+export function lowest(items: Item[]): Item {
+    return _.minBy(items, item => item.total)!;
 }
