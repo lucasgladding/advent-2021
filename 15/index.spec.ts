@@ -38,6 +38,6 @@ describe('15', () => {
         const to = grid.get(499, 499)!;
         const path = grid.path(from, to);
         const total = sum(path);
-        expect(total).toEqual(0);
+        expect(total).toEqual(2885);
     });
 });
