@@ -6,125 +6,94 @@ export function parse(name: string): number[][] {
     return contents.split('\n').map(item => item.split('').map(item => parseInt(item)));
 }
 
-type Coordinate = [number, number];
-
-class Point {
-    constructor(
-        public x: number,
-        public y: number,
-        public risk: number,
-    ) { }
+class Item {
+    constructor(public x: number, public y: number, public risk: number) { }
 
     get hash(): string {
-        return `${this.x},${this.y}`;
+        return [this.x, this.y].join(',');
     }
 }
 
 export class Grid {
     constructor(private map: number[][]) { }
 
-    get origin(): Point {
-        return this.point([0, 0])!;
-    }
-
-    get destination(): Point {
-        const x = this.map[0].length - 1;
-        const y = this.map.length - 1;
-        return this.point([x, y])!;
-    }
-
-    private point(at: Coordinate): Point | undefined {
-        const [x, y] = at;
+    get(x: number, y: number): Item | undefined {
         if (x < 0 || y < 0)
             return undefined;
         if (!this.map[y] || !this.map[y][x])
             return undefined;
-        return new Point(x, y, this.map[y][x]);
+        return new Item(x, y, this.map[y][x]);
     }
 
-    subsequent(from: Point): Point[] {
-        const {x, y} = from;
-        return [
-            this.point([x + 1, y]),
-            this.point([x, y + 1]),
-        ].filter(point => Boolean(point)) as Point[];
-    }
-}
+    path(from: Item, to: Item): Item[] {
+        const openSet: Set<Item> = new Set([from]);
 
-export class Item {
-    constructor(public point: Point, public parent: Item | undefined = undefined, public items: Item[] = []) { }
+        const parents = new Map<string, Item>();
 
-    includes(item: Item): boolean {
-        const hashes = this.path.map(item => item.hash);
-        return hashes.includes(item.hash);
-    }
+        const gScores = new Map<string, number>();
+        gScores.set(from.hash, 0);
 
-    get hash(): string {
-        return this.point.hash;
-    }
+        const fScores = new Map<string, number>();
+        fScores.set(from.hash, this.h(from, to));
 
-    get total(): number {
-        const items = this.path.slice(1);
-        return _.sumBy(items, item => item.point.risk);
-    }
+        while (openSet.size > 0) {
+            const current = _.sortBy(Array.from(openSet.values()), item => this.getScore(fScores, item))[0];
+            if (current.hash === to.hash) {
+                return this.reconstruct(parents, current);
+            }
 
-    private get path(): Item[] {
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        let current: Item = this;
-        const path = [current];
-        while (current.parent) {
-            path.push(current.parent);
-            current = current.parent;
-        }
-        return path.reverse();
-    }
-}
+            openSet.delete(current);
 
-export class Route {
-    static create(from: number[][]): Route {
-        const grid = new Grid(from);
-        return new Route(grid);
-    }
-
-    constructor(private grid: Grid) { }
-
-    get score(): number {
-        return this.best.total;
-    }
-
-    private get best(): Item {
-        const paths = this.find();
-        return _.minBy(paths, path => path.total)!;
-    }
-
-    private find(): Item[] {
-        const paths: Item[] = [];
-        const root = new Item(this.grid.origin);
-        this.expand(root);
-        this.traverse(root, this.grid.destination, paths);
-        return paths;
-    }
-
-    private expand(origin: Item, depth = 0) {
-        if (depth > 50)
-            return;
-        const points = this.grid.subsequent(origin.point);
-        for (const point of points) {
-            const item = new Item(point, origin);
-            if (!origin.includes(item)) {
-                origin.items.push(item);
-                this.expand(item, depth + 1);
+            for (const neighbor of this.next(current)) {
+                const tentative_gScore = this.getScore(gScores, current) + this.distance(neighbor);
+                if (tentative_gScore < this.getScore(gScores, neighbor)) {
+                    parents.set(neighbor.hash, current);
+                    gScores.set(neighbor.hash, tentative_gScore);
+                    fScores.set(neighbor.hash, tentative_gScore + this.h(neighbor, to));
+                    if (!openSet.has(neighbor)) {
+                        openSet.add(neighbor);
+                    }
+                }
             }
         }
+
+        throw new Error('Could not reach goal');
     }
 
-    private traverse(from: Item, destination: Point, routes: Item[]) {
-        if (from.hash === destination.hash) {
-            routes.push(from);
-            return;
+    private h(to: Item, from: Item): number {
+        return Math.abs(to.x - from.x) + Math.abs(to.x + from.x);
+    }
+
+    private getScore(scores: Map<string, number>, item: Item): number {
+        return scores.get(item.hash) ?? Infinity;
+    }
+
+    private next(to: Item): Item[] {
+        const {x, y} = to;
+        return [
+            this.get(x - 1, y),
+            this.get(x + 1, y),
+            this.get(x, y - 1),
+            this.get(x, y + 1),
+        ].filter(item => Boolean(item)) as Item[];
+    }
+
+    private reconstruct(cameFrom: Map<string, Item>, to: Item): Item[] {
+        let current = to;
+        const total_path: Item[] = [];
+        while (cameFrom.has(current.hash)) {
+            current = cameFrom.get(current.hash)!;
+            total_path.unshift(current);
         }
-        for (const item of from.items) {
-            this.traverse(item, destination, routes);
-        }
+        return total_path;
+    }
+
+    private distance(to: Item) {
+        return to.risk;
     }
 }
+
+export function sum(path: Item[]): number {
+    return _.sumBy(path, item => item.risk);
+}
+
