@@ -1,9 +1,33 @@
 import _ from 'lodash';
 import {read} from '../helpers';
 
-export function parse(name: string): number[][] {
+export function parse1(name: string): number[][] {
     const contents = read(name);
     return contents.split('\n').map(item => item.split('').map(item => parseInt(item)));
+}
+
+function duplicate(input: number[][]) {
+    const output: number[][] = [];
+    for (let i = 0; i < 5; i++) {
+        const group = input.map(item => {
+            const output = [];
+            for (let j = 0; j < 5; j++) {
+                output.push(...increment(item, i + j));
+            }
+            return output;
+        });
+        output.push(...group);
+    }
+    return output;
+}
+
+function increment(input: number[], amount = 1): number[] {
+    return input.map(item => (item + amount - 1) % 9 + 1);
+}
+
+export function parse2(name: string): number[][] {
+    const input = parse1(name);
+    return duplicate(input);
 }
 
 class Item {
@@ -15,7 +39,7 @@ class Item {
 }
 
 export class Grid {
-    constructor(private map: number[][]) { }
+    constructor(protected map: number[][]) { }
 
     get(x: number, y: number): Item | undefined {
         if (x < 0 || y < 0)
@@ -64,8 +88,8 @@ export class Grid {
         return Math.abs(to.x - from.x) + Math.abs(to.x + from.x);
     }
 
-    private getScore(scores: Map<string, number>, item: Item): number {
-        return scores.get(item.hash) ?? Infinity;
+    private getScore(from: Map<string, number>, item: Item): number {
+        return from.get(item.hash) ?? Infinity;
     }
 
     private next(to: Item): Item[] {
@@ -88,12 +112,6 @@ export class Grid {
         return total_path;
     }
 
-    protected distance(to: Item) {
-        return to.risk;
-    }
-}
-
-export class Grid2 extends Grid {
     protected distance(to: Item) {
         return to.risk;
     }
