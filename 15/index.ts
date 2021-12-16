@@ -80,7 +80,7 @@ export class Grid {
 
     private reconstruct(cameFrom: Map<string, Item>, to: Item): Item[] {
         let current = to;
-        const total_path: Item[] = [];
+        const total_path: Item[] = [current];
         while (cameFrom.has(current.hash)) {
             current = cameFrom.get(current.hash)!;
             total_path.unshift(current);
@@ -88,12 +88,18 @@ export class Grid {
         return total_path;
     }
 
-    private distance(to: Item) {
+    protected distance(to: Item) {
+        return to.risk;
+    }
+}
+
+export class Grid2 extends Grid {
+    protected distance(to: Item) {
         return to.risk;
     }
 }
 
 export function sum(path: Item[]): number {
-    return _.sumBy(path, item => item.risk);
+    return _.sumBy(path.slice(1), item => item.risk);
 }
 
