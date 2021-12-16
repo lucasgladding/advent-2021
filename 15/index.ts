@@ -23,7 +23,17 @@ class Point {
 export class Grid {
     constructor(private map: number[][]) { }
 
-    point(at: Coordinate): Point | undefined {
+    get origin(): Point {
+        return this.point([0, 0])!;
+    }
+
+    get destination(): Point {
+        const x = this.map[0].length - 1;
+        const y = this.map.length - 1;
+        return this.point([x, y])!;
+    }
+
+    private point(at: Coordinate): Point | undefined {
         const [x, y] = at;
         if (x < 0 || y < 0)
             return undefined;
@@ -32,11 +42,9 @@ export class Grid {
         return new Point(x, y, this.map[y][x]);
     }
 
-    nexts(from: Point): Point[] {
+    subsequent(from: Point): Point[] {
         const {x, y} = from;
         return [
-            // this.point([x - 1, y]),
-            // this.point([x, y - 1]),
             this.point([x + 1, y]),
             this.point([x, y + 1]),
         ].filter(point => Boolean(point)) as Point[];
@@ -46,8 +54,13 @@ export class Grid {
 export class Item {
     constructor(public point: Point, public parent: Item | undefined = undefined, public items: Item[] = []) { }
 
-    get hashes(): string[] {
-        return this.path.map(item => item.hash);
+    includes(item: Item): boolean {
+        const hashes = this.path.map(item => item.hash);
+        return hashes.includes(item.hash);
+    }
+
+    get hash(): string {
+        return this.point.hash;
     }
 
     get total(): number {
@@ -55,7 +68,7 @@ export class Item {
         return _.sumBy(items, item => item.point.risk);
     }
 
-    get path(): Item[] {
+    private get path(): Item[] {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         let current: Item = this;
         const path = [current];
@@ -65,42 +78,47 @@ export class Item {
         }
         return path.reverse();
     }
-
-    get hash(): string {
-        return this.point.hash;
-    }
 }
 
 export class Route {
-    constructor(private grid: Grid) { }
-
-    lowest(origin: Point, destination: Point): Item {
-        const paths = this.find(origin, destination);
-        return lowest(paths);
+    static create(from: number[][]): Route {
+        const grid = new Grid(from);
+        return new Route(grid);
     }
 
-    find(origin: Point, destination: Point): Item[] {
+    constructor(private grid: Grid) { }
+
+    get score(): number {
+        return this.best.total;
+    }
+
+    private get best(): Item {
+        const paths = this.find();
+        return _.minBy(paths, path => path.total)!;
+    }
+
+    private find(): Item[] {
         const paths: Item[] = [];
-        const root = new Item(origin);
+        const root = new Item(this.grid.origin);
         this.expand(root);
-        this.traverse(root, destination, paths);
+        this.traverse(root, this.grid.destination, paths);
         return paths;
     }
 
-    expand(origin: Item, depth = 0) {
+    private expand(origin: Item, depth = 0) {
         if (depth > 50)
             return;
-        const points = this.grid.nexts(origin.point);
+        const points = this.grid.subsequent(origin.point);
         for (const point of points) {
             const item = new Item(point, origin);
-            if (!origin.hashes.includes(item.hash)) {
+            if (!origin.includes(item)) {
                 origin.items.push(item);
                 this.expand(item, depth + 1);
             }
         }
     }
 
-    traverse(from: Item, destination: Point, routes: Item[]) {
+    private traverse(from: Item, destination: Point, routes: Item[]) {
         if (from.hash === destination.hash) {
             routes.push(from);
             return;
@@ -109,8 +127,4 @@ export class Route {
             this.traverse(item, destination, routes);
         }
     }
-}
-
-export function lowest(items: Item[]): Item {
-    return _.minBy(items, item => item.total)!;
 }
