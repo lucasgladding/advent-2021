@@ -85,7 +85,7 @@ export class Grid {
     }
 
     private h(to: Item, from: Item): number {
-        return Math.abs(to.x - from.x) + Math.abs(to.x + from.x);
+        return (Math.abs(to.x - from.x) + Math.abs(to.x + from.x)) * 5;
     }
 
     private getScore(from: Map<string, number>, item: Item): number {
