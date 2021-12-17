@@ -1,4 +1,6 @@
-const chars: Record<string, string> = {
+import _ from 'lodash';
+
+const CHARS: Record<string, string> = {
     '0': '0000',
     '1': '0001',
     '2': '0010',
@@ -17,11 +19,11 @@ const chars: Record<string, string> = {
     'F': '1111',
 };
 
-const lengths: number[] = [15, 11];
+const LENGTHS: number[] = [15, 11];
 
 export function decode(input: string): string {
     return input.split('').map(char => {
-        return chars[char];
+        return CHARS[char];
     }).join('');
 }
 
@@ -37,7 +39,11 @@ export class Packet {
     }
 
     get size(): number {
-        throw new Error('Implement through concrete subclasses');
+        return 0;
+    }
+
+    get sum(): number {
+        return 0;
     }
 }
 
@@ -62,42 +68,39 @@ export class Literal extends Packet {
         }
         return output;
     }
+
+    get sum(): number {
+        return this.version;
+    }
 }
 
-export class Operator1 extends Packet {
+export class Operator extends Packet {
     get subpackets(): Packet[] {
+        const type = this.content[0];
+        return type === '0' ? this.subpackets0 : this.subpackets1;
+    }
+
+    private get subpackets0(): Packet[] {
         const subpackets: Packet[] = [];
         let position = 1 + this.lengthLength;
         const length = position + this.subpacketsLength;
         while (position < length) {
             const content = this.content.slice(position);
-            const packet = new Literal(content);
+            const packet = create(content);
             subpackets.push(packet);
             position += packet.size;
         }
         return subpackets;
     }
 
-    get lengthLength(): number {
-        const type = parseInt(this.content[0]);
-        return lengths[type];
-    }
-
-    get subpacketsLength(): number {
-        const length = this.lengthLength;
-        return parseInt(this.content.slice(1, length + 1), 2);
-    }
-}
-
-export class Operator2 extends Packet {
-    get subpackets(): Packet[] {
+    private get subpackets1(): Packet[] {
         const subpackets: Packet[] = [];
         let position = 1 + this.lengthLength;
         let i = 0;
-        const count = this.subpacketsCount;
+        const count = this.subpacketsLength;
         while (i < count) {
             const content = this.content.slice(position);
-            const packet = new Literal(content);
+            const packet = create(content);
             subpackets.push(packet);
             position += packet.size;
             i++;
@@ -105,13 +108,28 @@ export class Operator2 extends Packet {
         return subpackets;
     }
 
-    get lengthLength(): number {
-        const type = parseInt(this.content[0]);
-        return lengths[type];
+    get size(): number {
+        const length = _.sumBy(this.subpackets, item => item.size);
+        return 3 + 3 + 1 + this.lengthLength + length;
     }
 
-    get subpacketsCount(): number {
+    get lengthLength(): number {
+        const type = parseInt(this.content[0]);
+        return LENGTHS[type];
+    }
+
+    get subpacketsLength(): number {
         const length = this.lengthLength;
         return parseInt(this.content.slice(1, length + 1), 2);
     }
+
+    get sum(): number {
+        const sum = _.sumBy(this.subpackets, item => item.sum);
+        return this.version + sum;
+    }
+}
+
+export function create(text: string): Packet {
+    const type = parseInt(text.slice(3, 6), 2);
+    return type === 4 ? new Literal(text) : new Operator(text);
 }
