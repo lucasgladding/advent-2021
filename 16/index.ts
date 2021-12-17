@@ -38,6 +38,10 @@ export class Packet {
         this.content = text.slice(6);
     }
 
+    get data(): number {
+        return 0;
+    }
+
     get size(): number {
         return 0;
     }
@@ -110,6 +114,27 @@ export class Operator extends Packet {
             i++;
         }
         return subpackets;
+    }
+
+    get data(): number {
+        const inputs = this.subpackets.map(item => item.data);
+        switch (this.type) {
+            case 0:
+                return _.sum(inputs);
+            case 1:
+                return inputs.reduce((acc, item) => acc * item, 1);
+            case 2:
+                return _.min(inputs)!;
+            case 3:
+                return _.max(inputs)!;
+            case 5:
+                return inputs[0] > inputs[1] ? 1 : 0;
+            case 6:
+                return inputs[0] < inputs[1] ? 1 : 0;
+            case 7:
+                return inputs[0] === inputs[1] ? 1 : 0;
+        }
+        return 0;
     }
 
     get size(): number {
