@@ -1,5 +1,3 @@
-import _ from 'lodash';
-
 const chars: Record<string, string> = {
     '0': '0000',
     '1': '0001',
@@ -27,35 +25,6 @@ export function decode(input: string): string {
     }).join('');
 }
 
-function decodeLiteral(input: string): string {
-    let done = false;
-    let output = '';
-    let position = 0;
-    while (!done) {
-        done = input[position] === '0';
-        output += input.slice(position + 1, position + 5);
-        position += 5;
-    }
-    return output;
-}
-
-function decodeOperator(input: string) {
-    const output: string[] = [];
-    let position = 0;
-
-    const type = parseInt(input[0]);
-    const length = lengths[type];
-    position += 1;
-
-    const bits = parseInt(input.slice(position, position + length), 2);
-    position += length;
-
-    const content = input.slice(position, position + bits);
-    position += bits;
-
-    return output;
-}
-
 export class Packet {
     version: number;
     type: number;
@@ -70,10 +39,6 @@ export class Packet {
     get size(): number {
         throw new Error('Implement through concrete subclasses');
     }
-}
-
-function snap(input: number): number {
-    return Math.ceil(input / 4) * 4;
 }
 
 export class Literal extends Packet {
@@ -111,11 +76,6 @@ export class Operator1 extends Packet {
             position += packet.size;
         }
         return subpackets;
-    }
-
-    get size(): number {
-        const length = _.sumBy(this.subpackets, item => item.size);
-        return 3 + 3 + 1 + this.lengthLength + length;
     }
 
     get lengthLength(): number {
