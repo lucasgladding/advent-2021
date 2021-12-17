@@ -68,7 +68,7 @@ export class Operator1 extends Packet {
     get subpackets(): Packet[] {
         const subpackets: Packet[] = [];
         let position = 1 + this.lengthLength;
-        const length = 1 + this.lengthLength + this.subpacketsLength;
+        const length = position + this.subpacketsLength;
         while (position < length) {
             const content = this.content.slice(position);
             const packet = new Literal(content);
