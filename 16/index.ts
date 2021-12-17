@@ -99,11 +99,11 @@ export class Literal extends Packet {
     }
 }
 
-export class Operator extends Packet {
+export class Operator1 extends Packet {
     get subpackets(): Packet[] {
         const subpackets: Packet[] = [];
         let position = 1 + this.lengthLength;
-        const length = position + this.subpacketsLength;
+        const length = 1 + this.lengthLength + this.subpacketsLength;
         while (position < length) {
             const content = this.content.slice(position);
             const packet = new Literal(content);
@@ -113,12 +113,44 @@ export class Operator extends Packet {
         return subpackets;
     }
 
+    get size(): number {
+        const length = _.sumBy(this.subpackets, item => item.size);
+        return 3 + 3 + 1 + this.lengthLength + length;
+    }
+
     get lengthLength(): number {
         const type = parseInt(this.content[0]);
         return lengths[type];
     }
 
     get subpacketsLength(): number {
+        const length = this.lengthLength;
+        return parseInt(this.content.slice(1, length + 1), 2);
+    }
+}
+
+export class Operator2 extends Packet {
+    get subpackets(): Packet[] {
+        const subpackets: Packet[] = [];
+        let position = 1 + this.lengthLength;
+        let i = 0;
+        const count = this.subpacketsCount;
+        while (i < count) {
+            const content = this.content.slice(position);
+            const packet = new Literal(content);
+            subpackets.push(packet);
+            position += packet.size;
+            i++;
+        }
+        return subpackets;
+    }
+
+    get lengthLength(): number {
+        const type = parseInt(this.content[0]);
+        return lengths[type];
+    }
+
+    get subpacketsCount(): number {
         const length = this.lengthLength;
         return parseInt(this.content.slice(1, length + 1), 2);
     }
