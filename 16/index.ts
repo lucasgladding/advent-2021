@@ -75,12 +75,16 @@ export class Literal extends Packet {
 }
 
 export class Operator extends Packet {
-    get subpackets(): Packet[] {
+    subpackets: Packet[];
+
+    constructor(text: string) {
+        super(text);
+
         const type = this.content[0];
-        return type === '0' ? this.subpackets0 : this.subpackets1;
+        this.subpackets = type === '0' ? this.generateSubpacketsLength() : this.generateSubpacketsCount();
     }
 
-    private get subpackets0(): Packet[] {
+    private generateSubpacketsLength(): Packet[] {
         const subpackets: Packet[] = [];
         let position = 1 + this.lengthLength;
         const length = position + this.subpacketsLength;
@@ -93,7 +97,7 @@ export class Operator extends Packet {
         return subpackets;
     }
 
-    private get subpackets1(): Packet[] {
+    private generateSubpacketsCount(): Packet[] {
         const subpackets: Packet[] = [];
         let position = 1 + this.lengthLength;
         let i = 0;
