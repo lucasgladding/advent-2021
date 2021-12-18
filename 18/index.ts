@@ -1,60 +1,70 @@
 import _ from 'lodash';
 
-type Item = Pair | number;
-type Pair = [Item, Item];
+const PATTERN = /(\[|\]|\d+)/g;
 
-export function add(a: Pair, b: Pair): Pair {
-    return [a, b];
+type Input = (string | number)[];
+type Range = [number, number];
+
+export function parse(text: string): Input {
+    const matches = text.match(PATTERN) as string[];
+    return matches.map(item => {
+        const int = parseInt(item);
+        return isNaN(int) ? item : int;
+    });
 }
 
-export function search(parent: Item, fn: SearchFn, path: number[] = []): number[] | undefined {
-    if (fn(parent, path))
-        return path;
-    if (!Array.isArray(parent))
-        return undefined;
-    for (const [index, item] of parent.entries()) {
-        const match = search(item, fn, [...path, index]);
-        if (match)
-            return match;
+export function evaluate(input: Input) {
+    let current = input;
+    for (let i = 0; i < 5; i++) {
+        const position = get_explode(current);
+        if (position !== undefined) {
+            current = explode(current, position);
+            continue;
+        }
+    }
+    console.log(current);
+}
+
+function get_explode(input: Input): number | undefined {
+    let depth = 0;
+    let numbers = 0;
+    for (const [index, item] of input.entries()) {
+        if (item === '[') {
+            depth++;
+            numbers = 0;
+        }
+        if (item === ']') {
+            depth--;
+            numbers = 0;
+        }
+        if (typeof item === 'number') {
+            numbers++;
+            if (numbers === 2 && depth > 4) {
+                return index - 2;
+            }
+        }
     }
     return undefined;
 }
 
-export type SearchFn = (parent: Item, path: number[] | undefined) => boolean;
+function explode(input: Input, position: number): Input {
+    const l = input.slice(0, position);
+    const r = input.slice(position + 4);
+    const a = input[position + 1] as number;
+    const b = input[position + 2] as number;
+    return [
+        ...replace(l.reverse(), a).reverse(),
+        0,
+        ...replace(r, b),
+    ];
+}
 
-export const can_explode: SearchFn = (parent, path = []) => {
-    return Array.isArray(parent) && typeof parent[0] === 'number' && typeof parent[1] === 'number' && path.length >= 4;
-};
-
-export function explode(parent: Pair, path: number[]) {
-    const indexes = path.slice(0, -1);
-    const index = path.slice(-1)[0];
-    const subject = _.get(parent, path);
-    const target = _.get(parent, indexes);
-    if (index === 0) {
-        const sum = subject[1] + target[1]
-        _.set(parent, [...indexes, 0], 0);
-        _.set(parent, [...indexes, 1], sum);
+function replace(input: Input, increment: number): Input {
+    const output = [...input];
+    const index = _.findIndex(input, item => typeof item === 'number');
+    if (input[index]) {
+        const base = input[index] as number;
+        output[index] = base + increment;
     }
-}
-
-export function trim(input: number[], target: number): number[] {
-    const tacos = input.reverse();
-
-    return input;
-}
-
-export const can_split: SearchFn = (parent, path = []) => {
-    const match = typeof parent === 'number' &&
-        parent >= 10;
-    if (match)
-        console.log('can_split', [parent, path]);
-    return match;
-};
-
-export function split(parent: Pair, path: number[]) {
-    const subject = _.get(parent, path);
-    const a = Math.floor(subject / 2);
-    const b = Math.ceil(subject / 2);
-    _.set(parent, path, [a, b]);
+    return output;
 }
