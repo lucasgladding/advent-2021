@@ -15,10 +15,17 @@ export function parse(text: string): Input {
 
 export function evaluate(input: Input) {
     let current = input;
+    let position = undefined;
     for (let i = 0; i < 5; i++) {
-        const position = get_explode(current);
+        console.log('test', current.join(''));
+        position = get_explode(current);
         if (position !== undefined) {
             current = explode(current, position);
+            continue;
+        }
+        position = get_split(current);
+        if (position !== undefined) {
+            current = split(current, position);
             continue;
         }
     }
@@ -26,6 +33,7 @@ export function evaluate(input: Input) {
 }
 
 function get_explode(input: Input): number | undefined {
+    console.log('get_explode', input.join(''))
     let depth = 0;
     let numbers = 0;
     for (const [index, item] of input.entries()) {
@@ -47,6 +55,13 @@ function get_explode(input: Input): number | undefined {
     return undefined;
 }
 
+// after addition: [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]
+// after explode:  [[[[0,7],4],[7,[[8,4],9]]],[1,1]]
+// after explode:  [[[[0,7],4],[15,[0,13]]],[1,1]]
+// after split:    [[[[0,7],4],[[7,8],[0,13]]],[1,1]]
+// after split:    [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]
+// after explode:  [[[[0,7],4],[[7,8],[6,0]]],[8,1]]
+
 function explode(input: Input, position: number): Input {
     const l = input.slice(0, position);
     const r = input.slice(position + 4);
@@ -62,9 +77,34 @@ function explode(input: Input, position: number): Input {
 function replace(input: Input, increment: number): Input {
     const output = [...input];
     const index = _.findIndex(input, item => typeof item === 'number');
-    if (input[index]) {
-        const base = input[index] as number;
-        output[index] = base + increment;
+    if (index !== undefined) {
+        const basis = input[index] as number;
+        output[index] = basis + increment;
     }
     return output;
+}
+
+function get_split(input: Input): number | undefined {
+    for (const [index, item] of input.entries()) {
+        if (typeof item === 'number') {
+            if (item >= 10) {
+                return index;
+            }
+        }
+    }
+    return undefined;
+}
+
+function split(input: Input, position: number): Input {
+    const l = input.slice(0, position);
+    const r = input.slice(position + 1);
+    const a = input[position] as number;
+    return [
+        ...l,
+        '[',
+        Math.floor(a / 2),
+        Math.ceil(a / 2),
+        ']',
+        ...r,
+    ];
 }
