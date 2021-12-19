@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-const LIMIT = 25;
+const LIMIT = 1000;
 const PATTERN = /(\[|\]|\d+|,)/g;
 
 type Input = (string | number)[];
@@ -13,16 +13,17 @@ export function parse(text: string): Input {
     });
 }
 
-export function sum(input: string[]): string {
-    let current = input[0];
+export function sum(input: Input[]): Input {
+    let current = reduce(input[0]);
     for (const item of input.slice(1)) {
-        current = add(current, item);
+        const sum = add(current, item);
+        current = reduce(sum);
     }
     return current;
 }
 
-export function add(a: string, b: string): string {
-    return `[${a},${b}]`;
+export function add(a: Input, b: Input): Input {
+    return ['[', ...a, ',', ...b, ']'];
 }
 
 export function reduce(input: Input): Input {

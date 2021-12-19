@@ -1,4 +1,5 @@
-import {reduce, checksum, parse} from './index';
+import {checksum, parse, reduce, sum} from './index';
+import {read} from '../helpers';
 
 describe('18', () => {
     it.each([
@@ -19,7 +20,13 @@ describe('18', () => {
     ])('gets the magnitude', (text, expected) => {
         const input = parse(text);
         const output = reduce(input);
-        const sum = checksum(output);
-        expect(sum).toEqual(expected);
+        expect(checksum(output)).toEqual(expected);
+    });
+
+    it('gets the example', () => {
+        const contents = read('18/example-1.txt').split('\n').map(item => parse(item));
+        const output = sum(contents);
+        expect(output.join('')).toEqual('[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]');
+        expect(checksum(output)).toEqual(4140)
     });
 });
