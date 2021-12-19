@@ -24,7 +24,7 @@ export function add(a: string, b: string): string {
     return `[${a},${b}]`;
 }
 
-export function evaluate(input: Input) {
+export function evaluate(input: Input): Input {
     let current = input;
     let position = undefined;
     for (let i = 0; i < 10; i++) {
@@ -39,7 +39,7 @@ export function evaluate(input: Input) {
             continue;
         }
     }
-    console.log(current.join(''));
+    return current;
 }
 
 function get_explode(input: Input): number | undefined {
