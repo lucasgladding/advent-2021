@@ -1,9 +1,8 @@
 import _ from 'lodash';
 
-const PATTERN = /(\[|\]|\d+)/g;
+const PATTERN = /(\[|\]|\d+|,)/g;
 
 type Input = (string | number)[];
-type Range = [number, number];
 
 export function parse(text: string): Input {
     const matches = text.match(PATTERN) as string[];
@@ -13,11 +12,22 @@ export function parse(text: string): Input {
     });
 }
 
+export function sum(input: string[]): string {
+    let current = input[0];
+    for (const item of input.slice(1)) {
+        current = add(current, item);
+    }
+    return current;
+}
+
+export function add(a: string, b: string): string {
+    return `[${a},${b}]`;
+}
+
 export function evaluate(input: Input) {
     let current = input;
     let position = undefined;
-    for (let i = 0; i < 5; i++) {
-        console.log('test', current.join(''));
+    for (let i = 0; i < 10; i++) {
         position = get_explode(current);
         if (position !== undefined) {
             current = explode(current, position);
@@ -29,11 +39,10 @@ export function evaluate(input: Input) {
             continue;
         }
     }
-    console.log(current);
+    console.log(current.join(''));
 }
 
 function get_explode(input: Input): number | undefined {
-    console.log('get_explode', input.join(''))
     let depth = 0;
     let numbers = 0;
     for (const [index, item] of input.entries()) {
@@ -48,25 +57,18 @@ function get_explode(input: Input): number | undefined {
         if (typeof item === 'number') {
             numbers++;
             if (numbers === 2 && depth > 4) {
-                return index - 2;
+                return index - 3;
             }
         }
     }
     return undefined;
 }
 
-// after addition: [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]
-// after explode:  [[[[0,7],4],[7,[[8,4],9]]],[1,1]]
-// after explode:  [[[[0,7],4],[15,[0,13]]],[1,1]]
-// after split:    [[[[0,7],4],[[7,8],[0,13]]],[1,1]]
-// after split:    [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]
-// after explode:  [[[[0,7],4],[[7,8],[6,0]]],[8,1]]
-
 function explode(input: Input, position: number): Input {
     const l = input.slice(0, position);
-    const r = input.slice(position + 4);
+    const r = input.slice(position + 5);
     const a = input[position + 1] as number;
-    const b = input[position + 2] as number;
+    const b = input[position + 3] as number;
     return [
         ...replace(l.reverse(), a).reverse(),
         0,
@@ -103,6 +105,7 @@ function split(input: Input, position: number): Input {
         ...l,
         '[',
         Math.floor(a / 2),
+        ',',
         Math.ceil(a / 2),
         ']',
         ...r,
