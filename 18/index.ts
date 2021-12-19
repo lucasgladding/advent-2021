@@ -28,8 +28,9 @@ export function add(a: Input, b: Input): Input {
 
 export function reduce(input: Input): Input {
     let current = input;
+    let done = false;
     let position = undefined;
-    for (let i = 0; i < LIMIT; i++) {
+    while (!done) {
         position = get_pair(current, 4);
         if (position !== undefined) {
             current = explode(current, position);
@@ -40,6 +41,7 @@ export function reduce(input: Input): Input {
             current = split(current, position);
             continue;
         }
+        done = true;
     }
     return current;
 }
@@ -116,13 +118,15 @@ function split(input: Input, position: number): Input {
 
 export function checksum(input: Input): number {
     let current = input;
+    let done = false;
     let position = undefined;
-    for (let i = 0; i < LIMIT; i++) {
+    while (!done) {
         position = get_pair(current);
         if (position !== undefined) {
             current = expand(current, position);
             continue;
         }
+        done = true;
     }
     return current[0] as number;
 }

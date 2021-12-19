@@ -29,4 +29,10 @@ describe('18', () => {
         expect(output.join('')).toEqual('[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]');
         expect(checksum(output)).toEqual(4140)
     });
+
+    it('gets part 1', () => {
+        const contents = read('18/input.txt').split('\n').map(item => parse(item));
+        const output = sum(contents);
+        expect(checksum(output)).toEqual(4072)
+    });
 });
