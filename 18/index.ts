@@ -28,12 +28,12 @@ export function evaluate(input: Input): Input {
     let current = input;
     let position = undefined;
     for (let i = 0; i < 10; i++) {
-        position = get_explode(current);
+        position = get_pair(current, 4);
         if (position !== undefined) {
             current = explode(current, position);
             continue;
         }
-        position = get_split(current);
+        position = get_large_number(current);
         if (position !== undefined) {
             current = split(current, position);
             continue;
@@ -42,7 +42,7 @@ export function evaluate(input: Input): Input {
     return current;
 }
 
-function get_explode(input: Input): number | undefined {
+function get_pair(input: Input, targetDepth = 0): number | undefined {
     let depth = 0;
     let numbers = 0;
     for (const [index, item] of input.entries()) {
@@ -56,7 +56,7 @@ function get_explode(input: Input): number | undefined {
         }
         if (typeof item === 'number') {
             numbers++;
-            if (numbers === 2 && depth > 4) {
+            if (numbers === 2 && depth > targetDepth) {
                 return index - 3;
             }
         }
@@ -86,7 +86,7 @@ function replace(input: Input, increment: number): Input {
     return output;
 }
 
-function get_split(input: Input): number | undefined {
+function get_large_number(input: Input): number | undefined {
     for (const [index, item] of input.entries()) {
         if (typeof item === 'number') {
             if (item >= 10) {
