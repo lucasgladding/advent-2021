@@ -1,4 +1,4 @@
-import {checksum, get_uniques, parse, reduce, sum} from './index';
+import {checksum, get_unique_inputs, parse, reduce, sum} from './index';
 import {read} from '../helpers';
 
 describe('18', () => {
@@ -38,7 +38,7 @@ describe('18', () => {
 
     it('gets the example 2', () => {
         const contents = read('18/example-1.txt').split('\n').map(item => parse(item));
-        const inputs = get_uniques(contents);
+        const inputs = get_unique_inputs(contents);
         const sums = inputs.map(item => {
             const output = sum(item);
             return checksum(output);
@@ -49,7 +49,7 @@ describe('18', () => {
 
     it('gets part 2', () => {
         const contents = read('18/input.txt').split('\n').map(item => parse(item));
-        const inputs = get_uniques(contents);
+        const inputs = get_unique_inputs(contents);
         const sums = inputs.map(item => {
             const output = sum(item);
             return checksum(output);

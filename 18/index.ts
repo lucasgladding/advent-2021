@@ -30,14 +30,14 @@ export function reduce(input: Input): Input {
     let done = false;
     let position = undefined;
     while (!done) {
-        position = get_pair(current, 4);
+        position = find_numeric_set(current, 4);
         if (position !== undefined) {
-            current = explode(current, position);
+            current = perform_explode(current, position);
             continue;
         }
-        position = get_large_number(current);
+        position = find_large_numeric(current);
         if (position !== undefined) {
-            current = split(current, position);
+            current = perform_split(current, position);
             continue;
         }
         done = true;
@@ -45,7 +45,7 @@ export function reduce(input: Input): Input {
     return current;
 }
 
-function get_pair(input: Input, targetDepth = 0): number | undefined {
+function find_numeric_set(input: Input, targetDepth = 0): number | undefined {
     let depth = 0;
     let numbers = 0;
     for (const [index, item] of input.entries()) {
@@ -67,19 +67,19 @@ function get_pair(input: Input, targetDepth = 0): number | undefined {
     return undefined;
 }
 
-function explode(input: Input, position: number): Input {
+function perform_explode(input: Input, position: number): Input {
     const l = input.slice(0, position);
     const r = input.slice(position + 5);
     const a = input[position + 1] as number;
     const b = input[position + 3] as number;
     return [
-        ...replace(l.reverse(), a).reverse(),
+        ...replace_first(l.reverse(), a).reverse(),
         0,
-        ...replace(r, b),
+        ...replace_first(r, b),
     ];
 }
 
-function replace(input: Input, increment: number): Input {
+function replace_first(input: Input, increment: number): Input {
     const output = [...input];
     const index = _.findIndex(input, item => typeof item === 'number');
     if (index !== undefined) {
@@ -89,7 +89,7 @@ function replace(input: Input, increment: number): Input {
     return output;
 }
 
-function get_large_number(input: Input): number | undefined {
+function find_large_numeric(input: Input): number | undefined {
     for (const [index, item] of input.entries()) {
         if (typeof item === 'number') {
             if (item >= 10) {
@@ -100,7 +100,7 @@ function get_large_number(input: Input): number | undefined {
     return undefined;
 }
 
-function split(input: Input, position: number): Input {
+function perform_split(input: Input, position: number): Input {
     const l = input.slice(0, position);
     const r = input.slice(position + 1);
     const a = input[position] as number;
@@ -120,9 +120,9 @@ export function checksum(input: Input): number {
     let done = false;
     let position = undefined;
     while (!done) {
-        position = get_pair(current);
+        position = find_numeric_set(current);
         if (position !== undefined) {
-            current = expand(current, position);
+            current = perform_expand(current, position);
             continue;
         }
         done = true;
@@ -130,7 +130,7 @@ export function checksum(input: Input): number {
     return current[0] as number;
 }
 
-function expand(input: Input, position: number) {
+function perform_expand(input: Input, position: number) {
     const l = input.slice(0, position);
     const r = input.slice(position + 5);
     const a = input[position + 1] as number;
@@ -142,7 +142,7 @@ function expand(input: Input, position: number) {
     ];
 }
 
-export function get_uniques(input: Input[]): Input[][] {
+export function get_unique_inputs(input: Input[]): Input[][] {
     const output = [];
     for (const [index, item] of input.entries()) {
         const rest = [
