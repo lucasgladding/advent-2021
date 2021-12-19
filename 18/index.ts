@@ -1,7 +1,6 @@
 import _ from 'lodash';
 
-const LIMIT = 1000;
-const PATTERN = /(\[|\]|\d+|,)/g;
+const PATTERN = /(\[|]|\d+|,)/g;
 
 type Input = (string | number)[];
 
@@ -141,4 +140,18 @@ function expand(input: Input, position: number) {
         3 * a + 2 * b,
         ...r,
     ];
+}
+
+export function get_uniques(input: Input[]): Input[][] {
+    const output = [];
+    for (const [index, item] of input.entries()) {
+        const rest = [
+            ...input.slice(0, index),
+            ...input.slice(index + 1),
+        ];
+        for (const a of rest) {
+            output.push([item, a]);
+        }
+    }
+    return output;
 }
