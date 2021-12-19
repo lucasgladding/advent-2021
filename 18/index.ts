@@ -1,5 +1,6 @@
 import _ from 'lodash';
 
+const LIMIT = 25;
 const PATTERN = /(\[|\]|\d+|,)/g;
 
 type Input = (string | number)[];
@@ -24,10 +25,10 @@ export function add(a: string, b: string): string {
     return `[${a},${b}]`;
 }
 
-export function evaluate(input: Input): Input {
+export function reduce(input: Input): Input {
     let current = input;
     let position = undefined;
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < LIMIT; i++) {
         position = get_pair(current, 4);
         if (position !== undefined) {
             current = explode(current, position);
@@ -108,6 +109,31 @@ function split(input: Input, position: number): Input {
         ',',
         Math.ceil(a / 2),
         ']',
+        ...r,
+    ];
+}
+
+export function checksum(input: Input): number {
+    let current = input;
+    let position = undefined;
+    for (let i = 0; i < LIMIT; i++) {
+        position = get_pair(current);
+        if (position !== undefined) {
+            current = expand(current, position);
+            continue;
+        }
+    }
+    return current[0] as number;
+}
+
+function expand(input: Input, position: number) {
+    const l = input.slice(0, position);
+    const r = input.slice(position + 5);
+    const a = input[position + 1] as number;
+    const b = input[position + 3] as number;
+    return [
+        ...l,
+        3 * a + 2 * b,
         ...r,
     ];
 }
